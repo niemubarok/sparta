@@ -1,5 +1,5 @@
 <template>
-  <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" no-backdrop-dismiss @hide="onDialogHide">
     <q-card
       class="q-px-md q-pt-sm glass relative"
       style="width: 500px; height: fit-content"
@@ -44,6 +44,14 @@
           filled
         />
       </div>
+      <div class="q-mt-md">
+        <q-select
+          v-model="transaksiStore.lokasiPos"
+          :options="postLocationOptions"
+          label="Pilih Lokasi Pos"
+          filled
+        />
+      </div>
 
       <q-card-actions align="right">
         <!-- <q-btn flat label="Action 1" /> -->
@@ -60,8 +68,10 @@ import { onMounted, onBeforeUnmount, onBeforeMount, ref } from "vue";
 import { useComponentStore } from "src/stores/component-store";
 
 import ls from "localstorage-slim";
+import { useTransaksiStore } from "src/stores/transaksi-store";
 
 const componentStore = useComponentStore();
+const transaksiStore = useTransaksiStore();
 // ls.config.encrypt = false;
 const cameraIn = ref(ls.get("cameraIn")) || ref("");
 const cameraOut = ref(ls.get("cameraOut")) || ref("");
@@ -87,17 +97,17 @@ const getAvailableCameras = () => {
 const cameraInOptions = ref(cameraOptions.value);
 const cameraOutOptions = ref(cameraOptions.value);
 
-// const props = defineProps({
-//   name: String,
-// });
+const postLocationOptions = ref([
+  { label: "Pos 1", value: "pos-1" },
+  { label: "Pos 2", value: "pos-2" },
+  { label: "Pos 3", value: "pos-3" },
+]);
 
 onMounted(async () => {
-  getAvailableCameras();
-
   navigator.mediaDevices
     .getUserMedia({ video: true })
-    .then((stream) => {
-      // Camera permission granted, do something with the stream
+    .then(() => {
+      getAvailableCameras();
     })
     .catch((error) => {
       // Camera permission denied or error occurred
@@ -108,6 +118,7 @@ onMounted(async () => {
 const onSaveSettings = () => {
   ls.set("cameraIn", cameraIn.value);
   ls.set("cameraOut", cameraOut.value);
+  ls.set("lokasiPos", transaksiStore.lokasiPos);
 
   dialogRef.value.hide();
   window.location.reload();
@@ -125,5 +136,10 @@ const { dialogRef, onDialogHide } = useDialogPluginComponent();
   background-color: rgba(255, 255, 255, 0.378);
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.125);
+}
+
+:deep(.q-dialog__backdrop.fixed-full) {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
 }
 </style>

@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { capitalize, ref } from "vue";
 import { format } from "quasar";
+import ls from "localstorage-slim";
 
 export const useTransaksiStore = defineStore("transaksi", {
   state: () => ({
     transaksi: [],
+    lokasiPos: ref(ls.get("lokasiPos") || "-"),
     jenisKendaraan: ref(""),
     platNomor: ref(),
     nomorTiket: ref(""),
