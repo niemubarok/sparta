@@ -1,6 +1,6 @@
 <template>
   <div v-if="$q.platform.is.mobile" class="text-h2">
-    <q-card class="my-card">
+    <q-card class="fixed-center">
       <img src="https://cdn.quasar.dev/img/mountains.jpg" />
       <q-card-section>
         <div class="text-h6">Silahkan buka halaman ini di Komputer</div>
@@ -32,7 +32,11 @@
       <div class="column">
         <div class="flex row q-mt-md q-mr-sm">
           <q-chip class="" icon="account_circle" label="Husni Mubarok" />
-          <q-chip class="" icon="place" label="Pos 2" />
+          <q-chip
+            class=""
+            icon="place"
+            :label="transaksiStore.lokasiPos.label"
+          />
           <!-- </div> -->
 
           <Clock />
