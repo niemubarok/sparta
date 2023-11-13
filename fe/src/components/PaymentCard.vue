@@ -76,7 +76,7 @@
                       square
                       outline
                       class="bg-transparent q-py-lg text-h6 text-dark q-mb-md relative full-width"
-                      :label="transaksiStore.jenisKendaraan"
+                      :label="transaksiStore.selectedJenisKendaraan.label"
                     >
                       <!-- style="border-color: ;" -->
                       <!-- floating -->

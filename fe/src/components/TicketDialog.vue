@@ -24,7 +24,7 @@
         />
       </div>
       <!-- <q-icon name="close"  /> -->
-      <q-item>
+      <!-- <q-item>
         <q-item-section avatar>
           <q-icon :name="props.icon" size="xl" />
         </q-item-section>
@@ -35,7 +35,14 @@
             >{{ props.title }}</q-item-label
           >
         </q-item-section>
-      </q-item>
+      </q-item> -->
+      <div>
+        <q-chip
+          square
+          class="bg-yellow-7 text-weight-bolder"
+          :label="props.title"
+        />
+      </div>
       <div class="flex justify-center">
         <member-card v-if="transaksiStore.isMember" />
         <plat-nomor v-else class="q-ma-md" />
@@ -47,6 +54,37 @@
       input-class="text-h4 text-white font-bold autofocus"
       input-style="height:10vh" -->
       <!-- outlined="bg-primary text-white font-bold" -->
+      <!-- <q-select
+        outlined
+        ref="jenisKendaraanRef"
+        v-model="jenisKendaraanModel"
+        label="Pilih Jenis Kendaraan"
+        :options="jenisKendaraanOptions"
+        style="width: 250px"
+        autofocus
+        behavior="dialog"
+        @keydown="handleKeydownOnJenisKendaraan($event)"
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps">
+            <q-item-section avatar>
+              <q-chip
+                square
+                class="bg-dark text-white"
+                :label="scope.opt.value"
+              />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>{{ scope.opt.label }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-select> -->
+
+      <!-- <div>
+
+      </div> -->
+
       <q-input
         borderless
         class="input-box bg-primary rounded-corner relative q-pa-sm"
@@ -56,8 +94,8 @@
         v-model="transaksiStore.nomorTiket"
         label="Scan Nomor Struk"
         ref="strukRef"
-        autofocus
         @keydown.enter="onSaveSettings(props.type)"
+        autofocus
       >
         <template v-slot:append>
           <q-btn
@@ -89,6 +127,7 @@ import { useTransaksiStore } from "src/stores/transaksi-store";
 import MemberCard from "./MemberCard.vue";
 import PlatNomor from "./PlatNomor.vue";
 import { useComponentStore } from "src/stores/component-store";
+import { computed } from "@vue/reactivity";
 // import ls from "localstorage-slim";
 // import { useClassesStore } from "src/stores/classes-store";
 
@@ -110,7 +149,32 @@ defineEmits([
 
 const { dialogRef } = useDialogPluginComponent();
 
-onMounted(async () => {});
+// const jenisKendaraanOptions = ref([]);
+// const jenisKendaraanModel = ref(null);
+// const jenisKendaraanRef = ref(null);
+
+// const handleKeydownOnJenisKendaraan = (event) => {
+//   console.log(event.key);
+//   const key = event.key;
+//   const matchingOption = jenisKendaraanOptions.value.find(
+//     (option) => option.value === key.toUpperCase()
+//   );
+//   // (option) => console.log(option.value === key.toUpperCase())
+//   if (matchingOption) {
+//     jenisKendaraanModel.value = matchingOption.value;
+//     jenisKendaraanRef.value.hidePopup();
+//   }
+// };
+
+// onMounted(() => {
+//   jenisKendaraanOptions.value = transaksiStore.jenisKendaraan.map((item) => {
+//     return {
+//       label: item.nama,
+//       value: item.id,
+//     };
+//   });
+//   // jenisKendaraanOptions.value = transaksiStore.jenisKendaraan;
+// });
 
 const onSaveSettings = (type) => {
   transaksiStore.setCheckIn(true);
@@ -129,6 +193,21 @@ const onDialogHide = () => {
   // console.log("at hide");
   componentStore.hideInputPlatNomor = false;
 };
+
+// const jenisKendaraanValue = computed(()=>;
+
+// const filterJenisKendaraan = (val, update) => {
+//   if (val === '') {
+//     update(() => {
+//       jenisKendaraanOptions.value =  jenisKendaraanValue
+//     })
+//     return
+//   }
+//   update(() => {
+//           const needle = val.toLowerCase()
+//           jenisKendaraanOptions.value = jenisKendaraanValue.filter(v => v.toLowerCase().indexOf(needle) > -1)
+//         })
+//       }
 </script>
 
 <style scoped>

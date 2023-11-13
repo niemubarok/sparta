@@ -1,7 +1,7 @@
 <template>
   <q-card class="items-center" style="width: fit-content">
     <q-chip
-      style="width: fit-content"
+      style="width: fit-content; min-width: 200px"
       class="rounded-corner q-px-md bg-grey-10 text-h4 text-white justify-center relative"
     >
       <q-badge

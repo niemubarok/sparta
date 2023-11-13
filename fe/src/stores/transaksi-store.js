@@ -7,10 +7,24 @@ export const useTransaksiStore = defineStore("transaksi", {
   state: () => ({
     transaksi: [],
     lokasiPos: ref(ls.get("lokasiPos") || "-"),
-    jenisKendaraan: ref(""),
+    jenisKendaraan: [
+      {
+        id: "M",
+        nama: "Motor",
+      },
+      {
+        id: "C",
+        nama: "Mobil",
+      },
+      {
+        id: "D",
+        nama: "Truck / Box",
+      },
+    ],
+    selectedJenisKendaraan: ref(""),
     platNomor: ref(),
     nomorTiket: ref(""),
-    isMember: ref(true),
+    isMember: ref(false),
     isCheckedIn: ref(false),
     waktuMasuk: ref(""),
     waktuKeluar: ref(""),

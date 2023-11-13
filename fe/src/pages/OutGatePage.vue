@@ -163,19 +163,29 @@
               val ? val.length <= 9 || 'Plat nomor terlalu banyak' : true,
           ]"
           @blur="() => onBlurPlatNomor()"
+          @keydown.enter="onEnterPlatNomor()"
         >
           <!-- @hasError="platNomorModel = ''" -->
           <!-- @input="(val) => onInputPlatNomor(val)" -->
-          <!-- @keydown.enter="inputRef.blur()" -->
           <template v-slot:prepend>
             <!-- <div> -->
             <q-chip square label="F1" class="glass text-weight-bold q-mt-md" />
             <!-- </div> -->
           </template>
+
           <template v-slot:append>
-            <!-- BUTTON MOTOR  -->
-            <!-- v-morph:btn:bike:300.tween="morphStore.morphBikeModel" -->
             <q-btn
+              push
+              :size="'xl'"
+              class="q-mt-md q-mr-md bg-white text-dark"
+              icon="keyboard_return"
+            />
+            <!-- @click="onSaveSettings(props.type)" -->
+          </template>
+
+          <!-- <template v-slot:append> -->
+          <!-- BUTTON MOTOR  -->
+          <!-- <q-btn
               :disable="
                 !transaksiStore.platNomor ||
                 transaksiStore.platNomor?.length > 9
@@ -190,11 +200,10 @@
               @blur="isHover.bike = false"
               @focus="isHover.bike = true"
               @click="onClickTicket('bike')"
-            />
+            /> -->
 
-            <!-- BUTTON MOBIL  -->
-            <!-- v-morph:btn:car:300.tween="morphStore.morphCarModel" -->
-            <q-btn
+          <!-- BUTTON MOBIL  -->
+          <!-- <q-btn
               :disable="
                 !transaksiStore.platNomor ||
                 transaksiStore.platNomor?.length > 9
@@ -209,10 +218,10 @@
               @blur="isHover.car = false"
               @focus="isHover.car = true"
               @click="onClickTicket('car')"
-            />
+            /> -->
 
-            <!-- BUTTON BUS  -->
-            <q-btn
+          <!-- BUTTON BUS  -->
+          <!-- <q-btn
               :disable="
                 !transaksiStore.platNomor ||
                 transaksiStore.platNomor?.length > 9
@@ -229,7 +238,7 @@
               @focus="isHover.bus = true"
               @click="onClickTicket('bus')"
             />
-          </template>
+          </template> -->
         </q-input>
       </div>
 
@@ -288,25 +297,30 @@
 import { ref, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { Notify, useQuasar } from "quasar";
-import FotoKendaraan from "../components/FotoKendaraan.vue";
-import JenisKendaraanCard from "../components/JenisKendaraanCard.vue";
-import Clock from "../components/Clock.vue";
 import { useMorphStore } from "src/stores/morph-store";
 import { useTransaksiStore } from "src/stores/transaksi-store";
 import { useComponentStore } from "src/stores/component-store";
+import { getTime } from "src/utils/time-util";
+import ls from "localstorage-slim";
+
+//Components
+import FotoKendaraan from "../components/FotoKendaraan.vue";
+import JenisKendaraanCard from "../components/JenisKendaraanCard.vue";
+import Clock from "../components/Clock.vue";
 import NomorTiketCard from "src/components/CarMorph.vue";
 import PaymentCard from "src/components/PaymentCard.vue";
 import Quotes from "src/components/Quotes.vue";
 import InfoCard from "src/components/InfoCard.vue";
 import PetugasCard from "src/components/PetugasCard.vue";
-import SettingsDialog from "src/components/SettingsDialog.vue";
-import TicketDialog from "src/components/TicketDialog.vue";
 import ShinyCard from "src/components/ShinyCard.vue";
-import { getTime } from "src/utils/time-util";
 import CaemeraOut from "src/components/CameraOut.vue";
 import CaemeraIn from "src/components/CameraIn.vue";
-import ls from "localstorage-slim";
+
+// dialogues
+import SettingsDialog from "src/components/SettingsDialog.vue";
+import TicketDialog from "src/components/TicketDialog.vue";
 import KendaraanKeluarDialog from "src/components/KendaraanKeluarDialog.vue";
+import JenisKendaraanDialog from "src/components/JenisKendaraanDialog.vue";
 
 const transaksiStore = useTransaksiStore();
 const componentStore = useComponentStore();
@@ -386,6 +400,26 @@ const onBlurPlatNomor = () => {
   // console.log(platNomorModel.value.toUpperCase());
 };
 
+const onEnterPlatNomor = () => {
+  const dialog = $q.dialog({
+    component: JenisKendaraanDialog,
+    noBackdropDismiss: true,
+    persistent: true,
+    // componentProps: {
+    //   title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
+    //   icon:
+    //     type === "car"
+    //       ? "directions_car"
+    //       : type == "bike"
+    //       ? "two_wheeler"
+    //       : "local_shipping",
+    //   type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
+    // },
+  });
+
+  dialog.update();
+  componentStore.hideInputPlatNomor = true;
+};
 const areaCode = ref("B");
 const areaCodeOptions = ref([]);
 
