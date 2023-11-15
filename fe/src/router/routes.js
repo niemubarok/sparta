@@ -11,6 +11,7 @@ const routes = [
         meta: {
           isSidebar: false,
           isHeader: false,
+          requiresAuth: true,
         },
       },
     ],

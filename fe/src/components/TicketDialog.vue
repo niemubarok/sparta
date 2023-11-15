@@ -11,7 +11,7 @@
     <!-- :content-css="{ 'background-color': 'rgba(0, 0, 0, 0.9)' }" -->
     <q-card
       style="width: 50vw; height: fit-content"
-      class="q-px-md q-py-md glass rounded-corner relative"
+      class="q-px-md q-pt-xl q-pb-md glass rounded-corner relative"
     >
       <div>
         <q-avatar
@@ -38,8 +38,7 @@
       </q-item> -->
       <div>
         <q-chip
-          square
-          class="bg-yellow-7 text-weight-bolder"
+          class="bg-yellow-7 text-h6 text-weight-bolder absolute-top-left"
           :label="props.title"
         />
       </div>
@@ -176,17 +175,22 @@ const { dialogRef } = useDialogPluginComponent();
 //   // jenisKendaraanOptions.value = transaksiStore.jenisKendaraan;
 // });
 
-const onSaveSettings = (type) => {
-  transaksiStore.setCheckIn(true);
-  dialogRef.value.hide();
+const onSaveSettings = async () => {
+  await transaksiStore.getTransaksiByNopol(transaksiStore.nomorTiket);
+  console.log(transaksiStore.transaksi.value);
 
-  if (type == "car") {
-    transaksiStore.jenisKendaraan = "Mobil";
-  } else if (type == "bus") {
-    transaksiStore.jenisKendaraan = "Bus";
-  } else if (type == "bike") {
-    transaksiStore.jenisKendaraan = "Motor";
+  if (transaksiStore.transaksi.value.length) {
+    transaksiStore.setCheckIn(true);
+    dialogRef.value.hide();
   }
+
+  // if (type == "car") {
+  //   transaksiStore.jenisKendaraan = "Mobil";
+  // } else if (type == "bus") {
+  //   transaksiStore.jenisKendaraan = "Bus";
+  // } else if (type == "bike") {
+  //   transaksiStore.jenisKendaraan = "Motor";
+  // }
   // window.location.reload();
 };
 const onDialogHide = () => {

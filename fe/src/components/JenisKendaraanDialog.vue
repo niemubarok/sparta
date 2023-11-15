@@ -11,7 +11,7 @@
     <!-- :content-css="{ 'background-color': 'rgba(0, 0, 0, 0.9)' }" -->
     <q-card
       style="width: 50vw; height: fit-content"
-      class="q-px-md q-py-md glass rounded-corner relative"
+      class="q-px-md q-pt-xl q-pb-md glass rounded-corner relative"
     >
       <div>
         <q-avatar
@@ -30,8 +30,11 @@
         </q-item-section> -->
       <!-- <q-item-section> -->
       <!-- style="margin-left: -15px" -->
-      <div class="text-center text-weight-bolder text-h5">
-        Pilih Jenis Kendaraan
+      <div>
+        <q-chip
+          class="bg-yellow-7 text-h6 text-weight-bolder absolute-top-left q-pa-md"
+          label="Pilih Jenis Kendaraan"
+        />
       </div>
       <div class="flex justify-center">
         <!-- <member-card v-if="transaksiStore.isMember" /> -->
@@ -48,11 +51,13 @@
             <q-chip
               square
               class="bg-dark text-white text-weight-bolder q-px-md"
-              :label="jenisKendaraan.value"
+              :label="jenisKendaraan.shortcut"
             />
           </q-item-section>
           <q-item-section>
-            <q-item-label>{{ jenisKendaraan.label }}</q-item-label>
+            <q-item-label class="text-h6">{{
+              jenisKendaraan.label
+            }}</q-item-label>
           </q-item-section>
         </q-item>
       </div>
@@ -124,7 +129,7 @@ const onClickTicket = (type) => {
 const handleKeydownOnJenisKendaraan = (event) => {
   const key = event.key;
   const matchingOption = jenisKendaraanOptions.value.find(
-    (option) => option.value === key.toUpperCase()
+    (option) => option.shortcut === key.toUpperCase()
   );
   // (option) => console.log(option.value === key.toUpperCase())
   if (matchingOption) {
@@ -135,11 +140,14 @@ const handleKeydownOnJenisKendaraan = (event) => {
   }
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await transaksiStore.getJenisKendaraan();
+
   jenisKendaraanOptions.value = transaksiStore.jenisKendaraan.map((item) => {
     return {
-      label: item.nama,
       value: item.id,
+      label: item.nama,
+      shortcut: item.short_cut,
     };
   });
 

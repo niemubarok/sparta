@@ -163,8 +163,10 @@
               val ? val.length <= 9 || 'Plat nomor terlalu banyak' : true,
           ]"
           @blur="() => onBlurPlatNomor()"
-          @keydown.enter="onEnterPlatNomor()"
+          @keydown.enter="onPressEnterPlatNomor()"
         >
+          <!-- (val) =>
+          val ? val.length >= 4 || 'Plat nomor masih kurang' : true, -->
           <!-- @hasError="platNomorModel = ''" -->
           <!-- @input="(val) => onInputPlatNomor(val)" -->
           <template v-slot:prepend>
@@ -247,8 +249,7 @@
         class="fixed-bottom-left q-mb-md"
         color="primary"
         icon="logout"
-        label="Keluar"
-        @click="onClickSettings()"
+        label="Log Out"
       >
         <q-badge
           color="primary"
@@ -400,25 +401,34 @@ const onBlurPlatNomor = () => {
   // console.log(platNomorModel.value.toUpperCase());
 };
 
-const onEnterPlatNomor = () => {
-  const dialog = $q.dialog({
-    component: JenisKendaraanDialog,
-    noBackdropDismiss: true,
-    persistent: true,
-    // componentProps: {
-    //   title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
-    //   icon:
-    //     type === "car"
-    //       ? "directions_car"
-    //       : type == "bike"
-    //       ? "two_wheeler"
-    //       : "local_shipping",
-    //   type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
-    // },
-  });
+const onPressEnterPlatNomor = () => {
+  if (transaksiStore.platNomor.length < 4) {
+    $q.notify({
+      type: "negative",
+      message: "Cek kembali plat nomor yang anda input",
+      position: "bottom",
+      timeout: 500,
+    });
+  } else {
+    const dialog = $q.dialog({
+      component: JenisKendaraanDialog,
+      noBackdropDismiss: true,
+      persistent: true,
+      // componentProps: {
+      //   title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
+      //   icon:
+      //     type === "car"
+      //       ? "directions_car"
+      //       : type == "bike"
+      //       ? "two_wheeler"
+      //       : "local_shipping",
+      //   type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
+      // },
+    });
 
-  dialog.update();
-  componentStore.hideInputPlatNomor = true;
+    dialog.update();
+    componentStore.hideInputPlatNomor = true;
+  }
 };
 const areaCode = ref("B");
 const areaCodeOptions = ref([]);
@@ -439,6 +449,9 @@ onMounted(() => {
     } else if (event.shiftKey === true && event.key === "L") {
       event.preventDefault();
       onClickKendaraanKeluar();
+    } else if (event.shiftKey === true && event.key === "K") {
+      event.preventDefault();
+      router.push("/");
     }
   };
 

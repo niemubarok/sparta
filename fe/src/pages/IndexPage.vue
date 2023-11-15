@@ -11,16 +11,30 @@
         color="primary"
         icon="directions_car"
         label="Demo Post Keluar"
-        @click="$router.push('/outgate')"
+        @click="onClickDemoPage()"
       />
+      <!-- @click="$router.push('/outgate')" -->
     </div>
   </q-page>
 </template>
 
-<script>
+<script setup>
 import { defineComponent } from "vue";
+import LoginDialog from "src/components/LoginDialog.vue";
+import { useQuasar } from "quasar";
 
-export default defineComponent({
+const $q = useQuasar();
+
+const onClickDemoPage = () => {
+  const dialog = $q.dialog({
+    component: LoginDialog,
+    noBackdropDismiss: true,
+    persistent: true,
+  });
+  dialog.update();
+};
+
+defineComponent({
   name: "IndexPage",
 });
 </script>

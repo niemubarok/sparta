@@ -247,7 +247,7 @@ const handleKeyDown = (event) => {
     onClickBayar();
   }
   // Add the pressed key to the string of pressed keys
-  pressedKeys += event.key.toUpperCase();
+  pressedKeys += event ?? event.key.toUpperCase();
 
   // Check if the pressed keys match the target keys
   if (pressedKeys === targetKeys) {

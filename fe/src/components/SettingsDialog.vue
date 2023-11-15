@@ -78,6 +78,16 @@ const cameraOut = ref(ls.get("cameraOut")) || ref("");
 const cameraOptions = ref(["-"]);
 const getAvailableCameras = () => {
   navigator.mediaDevices
+    .getUserMedia({ video: true })
+    .then(() => {
+      getAvailableCameras();
+    })
+    .catch((error) => {
+      // Camera permission denied or error occurred
+      console.error("Error accessing camera: ", error);
+    });
+
+  navigator.mediaDevices
     .enumerateDevices()
     .then((devices) => {
       devices.forEach((device) => {
@@ -104,15 +114,8 @@ const postLocationOptions = ref([
 ]);
 
 onMounted(async () => {
-  navigator.mediaDevices
-    .getUserMedia({ video: true })
-    .then(() => {
-      getAvailableCameras();
-    })
-    .catch((error) => {
-      // Camera permission denied or error occurred
-      console.error("Error accessing camera: ", error);
-    });
+  getAvailableCameras();
+  // await transaksiStore.getLokasiPos();
 });
 
 const onSaveSettings = () => {
