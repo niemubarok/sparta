@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import ls from "localstorage-slim";
-// import { SerialPort } from "serialport";
+import { SerialPort } from "serialport";
 
 export const useComponentStore = defineStore("component", {
   state: () => ({
