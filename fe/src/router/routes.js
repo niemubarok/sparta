@@ -14,6 +14,16 @@ const routes = [
           requiresAuth: true,
         },
       },
+      {
+        path: "/transaksi/create",
+        name: "createTransaksi",
+        component: () => import("pages/CreateTransactionPage.vue"),
+        meta: {
+          isSidebar: false,
+          isHeader: false,
+          requiresAuth: true,
+        },
+      },
     ],
   },
 

@@ -39,7 +39,7 @@
             label="Plat Nomor"
           />
           <span class="text-center text-weight-bolder">
-            {{ transaksiStore.platNomor }}
+            {{ transaksiStore.nomorTiket }}
           </span>
         </q-chip>
         <q-input

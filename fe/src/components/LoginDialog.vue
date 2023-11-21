@@ -12,6 +12,7 @@
             dense
             outlined
             autofocus
+            autocomplete="off"
           ></q-input>
           <q-input
             v-model="password"
@@ -20,6 +21,7 @@
             outlined
             type="password"
             class="q-mt-md"
+            autocomplete="new-password"
           ></q-input>
           <q-card-actions align="right">
             <q-btn flat label="Cancel" @click="onCancel" />
@@ -59,7 +61,7 @@ const password = ref("");
 
 const onSubmit = async () => {
   try {
-    const response = await axios.post(process.env.API + "/user/login", {
+    const response = await axios.post(process.env.API_URL + "/user/login", {
       username: username.value,
       password: password.value,
     });

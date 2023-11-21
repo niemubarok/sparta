@@ -141,12 +141,18 @@ code {
   <div class="nft">
     <MemberRibbon />
     <div class="main">
-      <h4 class="text-white flex justify-end">
-        Husni Mubarok Muntazah
+      <h4 class="text-white text-weight-bol flex justify-start">
+        {{ props.nama }}
         <q-separator />
         <div class="flex row">
           <p style="font-size: medium">
-            <span class="text-h6">◷</span> Berakhir dalam 11 hari
+            <q-chip
+              square
+              class="text-grey-10 bg-grey-4"
+              icon="schedule"
+              :label="props.expiration"
+            />
+            <!-- <span class="text-h6">◷</span> {{ props.expiration }} -->
           </p>
         </div>
         <div class="full-width flex justify-end q-mt-lg">
@@ -158,6 +164,14 @@ code {
 </template>
 
 <script setup>
+import { useTransaksiStore } from "src/stores/transaksi-store";
 import MemberRibbon from "./MemberRibbon.vue";
 import PlatNomor from "./PlatNomor.vue";
+
+const props = defineProps({
+  nama: String,
+  expiration: String,
+});
+
+const transaksiStore = useTransaksiStore();
 </script>

@@ -7,7 +7,7 @@
       <img
         class="rounded-corner glass"
         style="height: 40vh; width: 30vw"
-        src="https://cdn.quasar.dev/img/mountains.jpg"
+        :src="props.url"
       />
     </div>
     <div v-else-if="props.type == 'video'">
@@ -25,6 +25,7 @@ import { ref } from "vue";
 const props = defineProps({
   title: String,
   type: String,
+  url: String,
 });
 </script>
 

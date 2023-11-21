@@ -6,7 +6,7 @@
     </div>
     <div class="struk-item">
       <span class="label">Plat Nomor:</span>
-      <span class="value">{{ transaksiStore.platNomor }}</span>
+      <span class="value">{{ transaksiStore.nomorTiket }}</span>
     </div>
     <div class="struk-item">
       <span class="label">Waktu Masuk:</span>

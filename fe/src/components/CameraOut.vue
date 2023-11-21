@@ -1,14 +1,15 @@
 <template>
-  <video ref="video" autoplay></video>
+  <video ref="videoRef" autoplay></video>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import ls from "localstorage-slim";
+import { useTransaksiStore } from "src/stores/transaksi-store";
 
 // const cameraId = ref(ls.get("cameraOut").id);
 const cameraId = ref(ls.get("cameraOut"));
-const video = ref(null);
+const videoRef = ref(null);
 
 onMounted(() => {
   if (cameraId.value.value) {
@@ -16,8 +17,8 @@ onMounted(() => {
       navigator.mediaDevices
         .getUserMedia({ video: { deviceId: cameraId.value.value } })
         .then(function (stream) {
-          video.value.srcObject = stream;
-          video.value.play();
+          videoRef.value.srcObject = stream;
+          videoRef.value.play();
         })
         .catch(function (error) {
           console.error("Error accessing video stream: ", error);

@@ -1,6 +1,17 @@
 <template>
-  <div class="ribbon ribbon-top-right z-top"><span>Member</span></div>
+  <div class="ribbon ribbon-top-right z-top">
+    <span
+      :class="transaksiStore.isMemberExpired ? 'bg-red-10 text-white' : ''"
+      >{{ transaksiStore.isMemberExpired ? "Expired" : "Member" }}</span
+    >
+  </div>
 </template>
+
+<script setup>
+import { useTransaksiStore } from "src/stores/transaksi-store";
+
+const transaksiStore = useTransaksiStore();
+</script>
 
 <style scoped>
 .ribbon {

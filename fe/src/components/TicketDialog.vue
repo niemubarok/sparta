@@ -43,7 +43,12 @@
         />
       </div>
       <div class="flex justify-center">
-        <member-card v-if="transaksiStore.isMember" />
+        <member-card
+          v-if="transaksiStore.isMember"
+          :nama="props.nama"
+          :expiration="props.expiration"
+          :ribbonText="props.ribbonText"
+        />
         <plat-nomor v-else class="q-ma-md" />
       </div>
       <!-- <q-separator class="border-1"></q-separator> -->
@@ -92,7 +97,11 @@
         color="teal"
         v-model="transaksiStore.nomorTiket"
         label="Scan Nomor Struk"
+        mask="XXXXXXXXXXXXXXXXXXXXX"
         ref="strukRef"
+        :rules="[
+          (val) => (val ? val.length >= 4 || 'Nomor ticket kurang' : true),
+        ]"
         @keydown.enter="onSaveSettings(props.type)"
         autofocus
       >
@@ -102,8 +111,8 @@
             :size="'xl'"
             class="q-mt-xl q-mr-lg bg-white text-dark"
             icon="keyboard_return"
-            @click="onSaveSettings(props.type)"
           />
+          <!-- @click="onSaveSettings(props.type)" -->
           <!-- @click="
               [morphStore.nextCarMorph(), transaksiStore.setCheckIn(true)]
             " -->
@@ -119,36 +128,31 @@
 </template>
 
 <script setup>
-import { useDialogPluginComponent } from "quasar";
-// import SuccessCheckMark from "./SuccessCheckMark.vue";
+import { useDialogPluginComponent, useQuasar } from "quasar";
 import { onMounted, onBeforeUnmount, onBeforeMount, ref } from "vue";
 import { useTransaksiStore } from "src/stores/transaksi-store";
 import MemberCard from "./MemberCard.vue";
 import PlatNomor from "./PlatNomor.vue";
 import { useComponentStore } from "src/stores/component-store";
-import { computed } from "@vue/reactivity";
+
+import { calculateParkingDuration } from "src/utils/time-util";
 // import ls from "localstorage-slim";
-// import { useClassesStore } from "src/stores/classes-store";
 
 // ls.config.encrypt = false;
+const $q = useQuasar();
 const transaksiStore = useTransaksiStore();
 const componentStore = useComponentStore();
 
 const props = defineProps({
   title: String,
-  icon: String,
-  type: String,
+  nama: String,
+  expiration: String,
+  ribbonText: String,
 });
 
-defineEmits([
-  // REQUIRED; need to specify some events that your
-  // component will emit through useDialogPluginComponent()
-  ...useDialogPluginComponent.emits,
-]);
+defineEmits([...useDialogPluginComponent.emits]);
 
 const { dialogRef } = useDialogPluginComponent();
-
-// const jenisKendaraanOptions = ref([]);
 // const jenisKendaraanModel = ref(null);
 // const jenisKendaraanRef = ref(null);
 
@@ -176,12 +180,53 @@ const { dialogRef } = useDialogPluginComponent();
 // });
 
 const onSaveSettings = async () => {
-  await transaksiStore.getTransaksiByNopol(transaksiStore.nomorTiket);
-  console.log(transaksiStore.transaksi.value);
+  if (transaksiStore.nomorTiket.length < 4) {
+    $q.notify({
+      type: "negative",
+      message: "Nomor tiket tidak valid",
+      position: "top",
+      timeout: 1000,
+    });
+    return;
+  }
 
-  if (transaksiStore.transaksi.value.length) {
-    transaksiStore.setCheckIn(true);
-    dialogRef.value.hide();
+  try {
+    const transaksi = await transaksiStore.getTransaksiByNopol(
+      transaksiStore.nomorTiket
+    );
+
+    console.log(transaksi);
+
+    if (transaksi.length) {
+      const waktuMasuk = new Date(transaksi[0].waktu_masuk);
+      const waktuKeluar = new Date();
+      const lamaParkir = calculateParkingDuration(waktuMasuk);
+      transaksiStore.durasi = `${lamaParkir.hours} Jam ${lamaParkir.minutes} Menit`;
+      await transaksiStore.calculateParkingFee(waktuMasuk, waktuKeluar);
+
+      // // const biayaParkir = calculateParkingFee(waktuMasuk, waktuKeluar);
+
+      // console.log(lamaParkir);
+      transaksiStore.waktuMasuk = transaksi[0].waktu_masuk;
+      // console.log(transaksi[0].waktu_masuk);
+      // console.log(waktuKeluar);
+      // console.log(biayaParkir);
+      // console.log(transaksiStore.transaksi.value);
+
+      transaksiStore.setCheckIn(true);
+
+      dialogRef.value.hide();
+    } else {
+      $q.notify({
+        type: "negative",
+        message: "Nomor Struk Sudah digunakan",
+      });
+    }
+  } catch (error) {
+    $q.notify({
+      type: "negative",
+      message: error,
+    });
   }
 
   // if (type == "car") {
@@ -195,8 +240,27 @@ const onSaveSettings = async () => {
 };
 const onDialogHide = () => {
   // console.log("at hide");
+
   componentStore.hideInputPlatNomor = false;
+  transaksiStore.dataCustomer = "";
 };
+
+const onInputTicket = () => {
+  if (transaksiStore.platNomor.length >= 3) {
+    const firstCharacter = transaksiStore.platNomor?.charAt(0);
+
+    if (!isNaN(firstCharacter)) {
+      transaksiStore.platNomor = "B" + transaksiStore.platNomor?.toUpperCase();
+    } else {
+      transaksiStore.platNomor = transaksiStore.platNomor?.toUpperCase();
+    }
+  }
+  // console.log(platNomorModel.value.toUpperCase());
+};
+
+onMounted(() => {
+  // transaksiStore.nomorTiket = "";
+});
 
 // const jenisKendaraanValue = computed(()=>;
 
@@ -216,8 +280,8 @@ const onDialogHide = () => {
 
 <style scoped>
 :deep(.q-dialog__backdrop.fixed-full) {
-  background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.712);
+  backdrop-filter: blur(30px);
 }
 .glass {
   backdrop-filter: blur(16px) saturate(180%);

@@ -1,12 +1,12 @@
 import type { HttpContextContract } from "@ioc:Adonis/Core/HttpContext";
 import Database from "@ioc:Adonis/Lucid/Database";
 
-export default class VehiclesController {
+export default class ShiftsController {
   public async index({ response }: HttpContextContract) {
-    const vehicles = await Database.query() // 👈 gives an instance of select query builder
-      .from("jenis_mobil")
+    const shift = await Database.query() // 👈 gives an instance of select query builder
+      .from("shift")
       .select("*");
-    response.status(200).json(vehicles);
+    response.status(200).json(shift);
   }
 
   public async create({}: HttpContextContract) {}

@@ -1,3 +1,6 @@
+import { useTransaksiStore } from "src/stores/transaksi-store";
+
+const transaksiStore = useTransaksiStore();
 export const zeroPad = (n) => {
   return (n < 10 ? "0" : "") + n;
 };
@@ -92,6 +95,41 @@ export const addMinutes = (t, m) => {
 
 export const isValidTime = (time) => {
   return /^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/gm.test(time);
+};
+
+export const checkSubscriptionExpiration = (subscriptionEndDate) => {
+  const currentDate = new Date();
+  const endDate = new Date(subscriptionEndDate);
+
+  if (currentDate < endDate) {
+    const timeDiff = endDate.getTime() - currentDate.getTime();
+    const daysLeft = Math.floor(timeDiff / (1000 * 3600 * 24));
+    const hoursLeft = Math.floor(
+      (timeDiff % (1000 * 3600 * 24)) / (1000 * 3600)
+    );
+    const minutesLeft = Math.floor((timeDiff % (1000 * 3600)) / (1000 * 60));
+    const secondsLeft = Math.floor((timeDiff % (1000 * 60)) / 1000);
+    transaksiStore.isMemberExpired = false;
+    // return `Berakhir pada ${daysLeft} hari, ${hoursLeft} jam, ${minutesLeft} menit, dan ${secondsLeft} detik.`;
+    return `Berakhir pada ${daysLeft} hari, ${hoursLeft} jam, ${minutesLeft} menit`;
+  } else {
+    transaksiStore.isMemberExpired = true;
+    return "Langganan sudah berakhir.";
+  }
+};
+
+export const calculateParkingDuration = (entryTime) => {
+  const currentTime = new Date();
+  const targetTime = new Date(entryTime);
+  const diffInMilliseconds = currentTime - targetTime;
+
+  const hours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
+  const minutes = Math.floor(
+    (diffInMilliseconds % (1000 * 60 * 60)) / (1000 * 60)
+  );
+  const seconds = Math.floor((diffInMilliseconds % (1000 * 60)) / 1000);
+
+  return { hours, minutes, seconds };
 };
 
 export const timeRegex24Format =

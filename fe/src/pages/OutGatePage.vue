@@ -13,7 +13,7 @@
       </q-card-section>
     </q-card>
   </div>
-  <div v-else class="relative">
+  <div :key="componentStore.outGateKey" v-else class="relative">
     <div
       v-show="!transaksiStore.isCheckedIn"
       class="flex row justify-between q-pl-lg fixed-top"
@@ -31,11 +31,16 @@
       </div>
       <div class="column">
         <div class="flex row q-mt-md q-mr-sm">
-          <q-chip class="" icon="account_circle" label="Husni Mubarok" />
+          <q-chip class="" icon="account_circle" :label="pegawai" />
           <q-chip
             class=""
             icon="place"
-            :label="transaksiStore.lokasiPos.label"
+            :label="
+              '(' +
+              transaksiStore.lokasiPos.value +
+              ') ' +
+              transaksiStore.lokasiPos.label
+            "
           />
           <!-- </div> -->
 
@@ -87,6 +92,7 @@
               width="49vw"
             />
             <CaemeraIn
+              :key="componentStore.cameraInKey"
               v-else
               :style="{
                 cursor: 'pointer',
@@ -107,6 +113,7 @@
               width="49vw"
             />
             <CaemeraOut
+              :key="componentStore.cameraOutKey"
               v-else
               :style="{
                 cursor: 'pointer',
@@ -123,7 +130,7 @@
         :class="!transaksiStore.isCheckedIn ? 'col-12' : ''"
         class="col-8 justify-center items-start"
       >
-        <PaymentCard v-show="transaksiStore.isCheckedIn" />
+        <PaymentCard v-if="transaksiStore.isCheckedIn" />
       </div>
       <!-- <div
         v-show="transaksiStore.isCheckedIn"
@@ -162,7 +169,7 @@
             (val) =>
               val ? val.length <= 9 || 'Plat nomor terlalu banyak' : true,
           ]"
-          @blur="() => onBlurPlatNomor()"
+          @update:model-value="() => onInputPlatNomor()"
           @keydown.enter="onPressEnterPlatNomor()"
         >
           <!-- (val) =>
@@ -181,66 +188,10 @@
               :size="'xl'"
               class="q-mt-md q-mr-md bg-white text-dark"
               icon="keyboard_return"
+              @click="onPressEnterPlatNomor()"
             />
             <!-- @click="onSaveSettings(props.type)" -->
           </template>
-
-          <!-- <template v-slot:append> -->
-          <!-- BUTTON MOTOR  -->
-          <!-- <q-btn
-              :disable="
-                !transaksiStore.platNomor ||
-                transaksiStore.platNomor?.length > 9
-              "
-              icon="two_wheeler"
-              push
-              :class="
-                isHover.bike ? 'bg-yellow text-dark' : 'bg-white text-dark'
-              "
-              class="q-mt-md"
-              size="lg"
-              @blur="isHover.bike = false"
-              @focus="isHover.bike = true"
-              @click="onClickTicket('bike')"
-            /> -->
-
-          <!-- BUTTON MOBIL  -->
-          <!-- <q-btn
-              :disable="
-                !transaksiStore.platNomor ||
-                transaksiStore.platNomor?.length > 9
-              "
-              icon="directions_car"
-              push
-              class="q-mt-md q-mx-md"
-              size="lg"
-              :class="
-                isHover.car ? 'bg-yellow text-dark' : 'bg-white text-dark'
-              "
-              @blur="isHover.car = false"
-              @focus="isHover.car = true"
-              @click="onClickTicket('car')"
-            /> -->
-
-          <!-- BUTTON BUS  -->
-          <!-- <q-btn
-              :disable="
-                !transaksiStore.platNomor ||
-                transaksiStore.platNomor?.length > 9
-              "
-              v-morph:btn:bus:300.tween="morphStore.morphBusModel"
-              icon="local_shipping"
-              push
-              :class="
-                isHover.bus ? 'bg-yellow text-dark' : 'bg-white text-dark'
-              "
-              class="q-mt-md"
-              size="lg"
-              @blur="isHover.bus = false"
-              @focus="isHover.bus = true"
-              @click="onClickTicket('bus')"
-            />
-          </template> -->
         </q-input>
       </div>
 
@@ -254,7 +205,7 @@
         <q-badge
           color="primary"
           text-color="white"
-          label="shift + K"
+          label="shift + L"
           class="q-ml-xs"
         />
       </q-btn>
@@ -270,7 +221,7 @@
         <q-badge
           color="primary"
           text-color="white"
-          label="shift + L"
+          label="shift + R"
           class="q-ml-xs"
         />
       </q-btn>
@@ -295,24 +246,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
-import { Notify, useQuasar } from "quasar";
-import { useMorphStore } from "src/stores/morph-store";
+import { useQuasar } from "quasar";
 import { useTransaksiStore } from "src/stores/transaksi-store";
 import { useComponentStore } from "src/stores/component-store";
-import { getTime } from "src/utils/time-util";
+import { getTime, checkSubscriptionExpiration } from "src/utils/time-util";
 import ls from "localstorage-slim";
 
 //Components
-import FotoKendaraan from "../components/FotoKendaraan.vue";
-import JenisKendaraanCard from "../components/JenisKendaraanCard.vue";
 import Clock from "../components/Clock.vue";
-import NomorTiketCard from "src/components/CarMorph.vue";
 import PaymentCard from "src/components/PaymentCard.vue";
 import Quotes from "src/components/Quotes.vue";
-import InfoCard from "src/components/InfoCard.vue";
-import PetugasCard from "src/components/PetugasCard.vue";
 import ShinyCard from "src/components/ShinyCard.vue";
 import CaemeraOut from "src/components/CameraOut.vue";
 import CaemeraIn from "src/components/CameraIn.vue";
@@ -323,29 +268,31 @@ import TicketDialog from "src/components/TicketDialog.vue";
 import KendaraanKeluarDialog from "src/components/KendaraanKeluarDialog.vue";
 import JenisKendaraanDialog from "src/components/JenisKendaraanDialog.vue";
 
+// import FotoKendaraan from "../components/FotoKendaraan.vue";
+// import { useMorphStore } from "src/stores/morph-store";
+// import JenisKendaraanCard from "../components/JenisKendaraanCard.vue";
+// import NomorTiketCard from "src/components/CarMorph.vue";
+// import InfoCard from "src/components/InfoCard.vue";
+// import PetugasCard from "src/components/PetugasCard.vue";
+
 const transaksiStore = useTransaksiStore();
 const componentStore = useComponentStore();
 const $q = useQuasar();
 
-const inputRef = ref(null);
-const isTransaksi = ref(true);
-const isHover = ref({
-  car: false,
-  bike: false,
-  bus: false,
-});
 const cardVideo = ref(null);
+const pegawai = ls.get("pegawai").nama;
 
 const cameraIn = ls.get("cameraIn") || null;
 const cameraOut = ls.get("cameraOut") || null;
 
 const router = useRouter();
 
-// MORPH
-
-const morphStore = useMorphStore();
-
 const inputPlatNomorRef = ref(null);
+// defineExpose({
+//   inputPlatNomorRef,
+// });
+
+// nopolInput.register(inputPlatNomorRef)
 
 const onClickSettings = () => {
   const settingsDialog = $q.dialog({
@@ -365,43 +312,38 @@ const onClickKendaraanKeluar = () => {
 
   settingsDialog.update();
 };
-const onClickTicket = (type) => {
-  // transaksiStore.setCheckIn(true);
-  const dialog = $q.dialog({
-    component: TicketDialog,
-    noBackdropDismiss: true,
-    persistent: true,
-    componentProps: {
-      title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
-      icon:
-        type === "car"
-          ? "directions_car"
-          : type == "bike"
-          ? "two_wheeler"
-          : "local_shipping",
-      type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
-    },
-  });
 
-  dialog.update();
-  componentStore.hideInputPlatNomor = true;
-};
+//   // transaksiStore.setCheckIn(true);
+//   const dialog = $q.dialog({
+//     component: TicketDialog,
+//     noBackdropDismiss: true,
+//     persistent: true,
+//     componentProps: {
+//       title: type,
+//     },
+//   });
 
-const onFocusPlatNomor = () => {
-  console.log("focus");
-};
-const onBlurPlatNomor = () => {
-  const firstCharacter = transaksiStore.platNomor?.charAt(0);
+//   dialog.update();
+//   componentStore.hideInputPlatNomor = true;
+// };
 
-  if (!isNaN(firstCharacter)) {
-    transaksiStore.platNomor = "B" + transaksiStore.platNomor?.toUpperCase();
-  } else {
-    transaksiStore.platNomor = transaksiStore.platNomor?.toUpperCase();
+// const onFocusPlatNomor = () => {
+//   console.log("focus");
+// };
+const onInputPlatNomor = () => {
+  if (transaksiStore.platNomor.length >= 3) {
+    const firstCharacter = transaksiStore.platNomor?.charAt(0);
+
+    if (!isNaN(firstCharacter)) {
+      transaksiStore.platNomor = "B" + transaksiStore.platNomor?.toUpperCase();
+    } else {
+      transaksiStore.platNomor = transaksiStore.platNomor?.toUpperCase();
+    }
   }
   // console.log(platNomorModel.value.toUpperCase());
 };
 
-const onPressEnterPlatNomor = () => {
+const onPressEnterPlatNomor = async () => {
   if (transaksiStore.platNomor.length < 4) {
     $q.notify({
       type: "negative",
@@ -410,30 +352,52 @@ const onPressEnterPlatNomor = () => {
       timeout: 500,
     });
   } else {
-    const dialog = $q.dialog({
-      component: JenisKendaraanDialog,
-      noBackdropDismiss: true,
-      persistent: true,
-      // componentProps: {
-      //   title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
-      //   icon:
-      //     type === "car"
-      //       ? "directions_car"
-      //       : type == "bike"
-      //       ? "two_wheeler"
-      //       : "local_shipping",
-      //   type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
-      // },
-    });
+    await transaksiStore.getCustomerByNopol();
+    const dataCustomer = ref(transaksiStore.dataCustomer);
+    console.log(dataCustomer.value);
 
-    dialog.update();
-    componentStore.hideInputPlatNomor = true;
+    // checkSubscriptionExpiration();
+    if (dataCustomer.value == "") {
+      const dialog = $q.dialog({
+        component: JenisKendaraanDialog,
+        noBackdropDismiss: true,
+        persistent: true,
+      });
+
+      dialog.update();
+    } else {
+      const jenis_kendaraan = {
+        value: dataCustomer.value?.id_jenis_kendaraan,
+        label: dataCustomer.value?.jenis_kendaraan,
+      };
+      transaksiStore.selectedJenisKendaraan = jenis_kendaraan;
+      console.log(jenis_kendaraan);
+      const expiration = checkSubscriptionExpiration(dataCustomer.value?.akhir);
+      const dialog = $q.dialog({
+        component: TicketDialog,
+        noBackdropDismiss: true,
+        persistent: true,
+        componentProps: {
+          title: jenis_kendaraan?.label,
+          nama: dataCustomer.value?.nama,
+          expiration: expiration,
+        },
+      });
+
+      dialog.update();
+      // componentStore.hideInputPlatNomor = true;
+    }
   }
 };
-const areaCode = ref("B");
-const areaCodeOptions = ref([]);
-
 onMounted(() => {
+  if (transaksiStore.lokasiPos === "-") {
+    onClickSettings();
+    $q.notify({
+      type: "negative",
+      message: "Silahkan pilih lokasi terlebih dahulu",
+      position: "center",
+    });
+  }
   // inputPlatNomorRef ? inputPlatNomorRef.value.focus() : "";
   const handleKeyDown = (event) => {
     // console.log(event.key);
@@ -446,10 +410,10 @@ onMounted(() => {
     } else if (event.shiftKey === true && event.key === "S") {
       event.preventDefault();
       onClickSettings();
-    } else if (event.shiftKey === true && event.key === "L") {
+    } else if (event.shiftKey === true && event.key === "R") {
       event.preventDefault();
       onClickKendaraanKeluar();
-    } else if (event.shiftKey === true && event.key === "K") {
+    } else if (event.shiftKey === true && event.key === "L") {
       event.preventDefault();
       router.push("/");
     }
@@ -461,6 +425,18 @@ onMounted(() => {
   //   router.push("/");
   // }
 });
+
+onUnmounted(() => {
+  console.log("unMounted");
+});
+// const inputRef = ref(null);
+// const isTransaksi = ref(true);
+// const isHover = ref({
+//   car: false,
+//   bike: false,
+//   bus: false,
+// });
+// const onClickTicket = (type) => {
 </script>
 
 <style>

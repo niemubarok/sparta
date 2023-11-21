@@ -50,7 +50,18 @@
           :options="postLocationOptions"
           label="Pilih Lokasi Pos"
           filled
-        />
+        >
+          <template v-slot:option="scope">
+            <q-item v-bind="scope.itemProps">
+              <q-item-section avatar>
+                <q-chip class="glossy" :label="scope.opt.value" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ scope.opt.label }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </template>
+        </q-select>
       </div>
 
       <q-card-actions align="right">
@@ -76,17 +87,13 @@ const transaksiStore = useTransaksiStore();
 const cameraIn = ref(ls.get("cameraIn")) || ref("");
 const cameraOut = ref(ls.get("cameraOut")) || ref("");
 const cameraOptions = ref(["-"]);
-const getAvailableCameras = () => {
-  navigator.mediaDevices
-    .getUserMedia({ video: true })
-    .then(() => {
-      getAvailableCameras();
-    })
-    .catch((error) => {
-      // Camera permission denied or error occurred
-      console.error("Error accessing camera: ", error);
-    });
 
+const cameraInOptions = ref(cameraOptions.value);
+const cameraOutOptions = ref(cameraOptions.value);
+
+const postLocationOptions = ref([]);
+
+const getAvailableCameras = () => {
   navigator.mediaDevices
     .enumerateDevices()
     .then((devices) => {
@@ -104,21 +111,34 @@ const getAvailableCameras = () => {
     });
 };
 
-const cameraInOptions = ref(cameraOptions.value);
-const cameraOutOptions = ref(cameraOptions.value);
-
-const postLocationOptions = ref([
-  { label: "Pos 1", value: "pos-1" },
-  { label: "Pos 2", value: "pos-2" },
-  { label: "Pos 3", value: "pos-3" },
-]);
-
+const onDialogHide = () => {
+  if (transaksiStore.lokasiPos === "-" || transaksiStore.lokasiPos === null) {
+    dialogRef.value.show();
+    $q.notify({
+      type: "negative",
+      message: "Silahkan pilih lokasi terlebih dahulu",
+      position: "center",
+    });
+  }
+};
 onMounted(async () => {
-  getAvailableCameras();
-  // await transaksiStore.getLokasiPos();
+  // getAvailableCameras();
+  postLocationOptions.value = await transaksiStore.getLokasiPos();
+
+  navigator.mediaDevices
+    .getUserMedia({ video: true })
+    .then(() => {
+      getAvailableCameras();
+    })
+    .catch((error) => {
+      // Camera permission denied or error occurred
+      console.error("Error accessing camera: ", error);
+    });
 });
 
 const onSaveSettings = () => {
+  // componentStore.setCameraInKey();
+
   ls.set("cameraIn", cameraIn.value);
   ls.set("cameraOut", cameraOut.value);
   ls.set("lokasiPos", transaksiStore.lokasiPos);
@@ -129,7 +149,7 @@ const onSaveSettings = () => {
 
 defineEmits([...useDialogPluginComponent.emits]);
 
-const { dialogRef, onDialogHide } = useDialogPluginComponent();
+const { dialogRef } = useDialogPluginComponent();
 </script>
 
 <style scoped>
@@ -143,6 +163,6 @@ const { dialogRef, onDialogHide } = useDialogPluginComponent();
 
 :deep(.q-dialog__backdrop.fixed-full) {
   background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(30px);
 }
 </style>

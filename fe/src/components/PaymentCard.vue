@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :ref="paymentCardKey">
     <!-- card untuk transaksi pembayaran -->
     <q-card
       flat
@@ -24,9 +24,9 @@
           flat
           bordered
           class="glass q-mt-xl"
-          style="width: 60vw; height: 40vh"
+          style="width: 60vw; height: fit-content"
         >
-          <MemberRibbon />
+          <MemberRibbon v-if="transaksiStore.isMember" />
           <div>
             <q-chip square class="glass text-primary text-h6"
               >Detail Parkir</q-chip
@@ -38,14 +38,19 @@
               <div class="col-5">
                 <q-timeline color="secondary" class="q-ma-xl">
                   <q-timeline-entry
-                    title="20:32:00"
+                    :title="tanggalMasuk"
+                    subtitle="Tanggal Masuk"
+                    icon="today"
+                  />
+                  <q-timeline-entry
+                    :title="waktuMasuk"
                     subtitle="Waktu Masuk"
                     icon="schedule"
-                    body="Pos 2"
                   />
+                  <!-- :body="lokasiPos" -->
 
                   <q-timeline-entry
-                    title="3 Jam"
+                    :title="transaksiStore.durasi"
                     subtitle="Lama Parkir"
                     icon="timer"
                   />
@@ -76,7 +81,7 @@
                       square
                       outline
                       class="bg-transparent q-py-lg text-h6 text-dark q-mb-md relative full-width"
-                      :label="transaksiStore.selectedJenisKendaraan.label"
+                      :label="transaksiStore.selectedJenisKendaraan?.label"
                     >
                       <!-- style="border-color: ;" -->
                       <!-- floating -->
@@ -121,7 +126,7 @@
             <!-- <div class="ribbon"></div> -->
             <!-- <div class="ribbon ribbon-top-left"><span>Member</span></div> -->
             <q-card-section>
-              <div class="text-h6 text-right">Tarif Parkir</div>
+              <div class="text-h6 text-right">Biaya Parkir</div>
               <div
                 class="text-right text-weight-bold"
                 style="
@@ -129,7 +134,7 @@
                   font-family: 'Courier Prime', monospace;
                 "
               >
-                Rp. 0
+                {{ transaksiStore.biayaParkir }}
               </div>
             </q-card-section>
           </q-card>
@@ -139,8 +144,8 @@
             class="text-right text-dark text-weight-bolder text-h4 bg-yellow"
             label="BAYAR"
             style="width: 10vw"
-            @click="onClickBayar()"
           >
+            <!-- @click="onClickBayar()" -->
             <!-- floating -->
             <q-btn
               push
@@ -154,7 +159,7 @@
       </q-card-section>
       <div class="col-4">
         <div class="column q-mt-lg q-mb-md q-mr-md fixed-top-right">
-          <FotoKendaraan title="Foto Masuk" type="image" />
+          <FotoKendaraan title="Foto Masuk" type="image" :url="picBodyMasuk" />
 
           <!-- <q-card class="bg-transparent text-center q-mt-md justify-center">
             <div style="top: 5px" class="absolute">
@@ -167,7 +172,12 @@
                 />
             </div>
           </q-card> -->
-          <FotoKendaraan title="Kamera Keluar" type="video">
+          <FotoKendaraan
+            v-if="!transaksiStore.pic_body_keluar"
+            title="Kamera Keluar"
+            type="video"
+          >
+            <!-- @click="captureCameraOut()" -->
             <template v-slot:video>
               <q-skeleton
                 v-if="cameraOut == null || cameraOut === '-'"
@@ -180,7 +190,9 @@
                   Tidak ada Kamera
                 </h4>
               </q-skeleton>
+              <!-- @capture="captureCameraOut()" -->
               <CameraOut
+                ref="cameraOutRef"
                 v-else
                 :style="{ width: '30vw' }"
                 class="q-mt-sm glass"
@@ -188,6 +200,12 @@
             </template>
             <!-- width: '42vw', -->
           </FotoKendaraan>
+          <FotoKendaraan
+            v-else
+            title="Foto Masuk"
+            type="image"
+            :url="transaksiStore.pic_body_keluar"
+          />
         </div>
       </div>
     </q-card>
@@ -196,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { useTransaksiStore } from "src/stores/transaksi-store";
 import FotoKendaraan from "src/components/FotoKendaraan.vue";
 import { format, useQuasar } from "quasar";
@@ -207,61 +225,113 @@ import ls from "localstorage-slim";
 import PlatNomor from "./PlatNomor.vue";
 import MemberRibbon from "./MemberRibbon.vue";
 
-const { capitalize } = format;
+import axios from "axios";
+
 const $q = useQuasar();
 const transaksiStore = useTransaksiStore();
 const buttonBatal = ref(false);
 const cameraOut = ls.get("cameraOut") || null;
+const cameraOutRef = ref(null);
 const bayarParkir = () => {
   // logika bayar parkir
 };
 
-const onClickBayar = (type) => {
-  const dialog = $q.dialog({
-    component: PaymentDialog,
-    noBackdropDismiss: true,
-    persistent: true,
-    // componentProps: {
-    //   title: type === "car" ? "Mobil" : type === "bike" ? "Motor" : "Truk",
-    //   icon:
-    //     type === "car"
-    //       ? "directions_car"
-    //       : type == "bike"
-    //       ? "two_wheeler"
-    //       : "local_shipping",
-    //   type: type === "car" ? "car" : type === "bike" ? "bike" : "bus",
-    // },
-  });
+const waktuMasuk = ref(
+  new Date(transaksiStore.waktuMasuk)
+    .toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    })
+    .replace(/\./g, ":")
+);
 
-  dialog.update();
+const tanggalMasuk = ref(
+  new Date(transaksiStore.waktuMasuk).toLocaleString("id-ID", {
+    // weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+);
+// const lokasiPos = ref(ls.get("lokasiPos")?.label);
+const isPaymentDialogMounted = ref(false);
+
+const onClickBayar = () => {
+  // const video = videoRef.value;
+  const videoRef = cameraOutRef.value?.$refs.videoRef;
+
+  if (videoRef !== undefined) {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    context.drawImage(videoRef, 0, 0, canvas.width, canvas.height);
+
+    const imageBase64 = canvas.toDataURL("image/png");
+
+    transaksiStore.pic_body_keluar = imageBase64;
+  }
+
+  if (!isPaymentDialogMounted.value) {
+    const dialog = $q.dialog({
+      component: PaymentDialog,
+      noBackdropDismiss: true,
+      persistent: true,
+    });
+
+    dialog.update();
+    isPaymentDialogMounted.value = true;
+  }
+  // console.log(imageBase64);
 };
 
-// console.log(event.key);
 let pressedKeys = "";
 const targetKeys = "BUKA MANUAL";
+const picBodyMasuk = ref();
 
 const handleKeyDown = (event) => {
   // console.log(event.key);
   if (event.key === "F12") {
     event.preventDefault();
     onClickBayar();
-  }
-  // Add the pressed key to the string of pressed keys
-  pressedKeys += event ?? event.key.toUpperCase();
-
-  // Check if the pressed keys match the target keys
-  if (pressedKeys === targetKeys) {
-    // Call the function to execute
-    console.log("Buka Manual");
-  }
-
-  // Reset the pressed keys string if it doesn't match the target keys
-  if (!targetKeys.startsWith(pressedKeys)) {
     pressedKeys = "";
+  } else {
+    // Add the pressed key to the string of pressed keys
+    pressedKeys += event ?? event.key.toUpperCase();
+
+    // Check if the pressed keys match the target keys
+    if (pressedKeys === targetKeys) {
+      // Call the function to execute
+      console.log("Buka Manual");
+    }
+
+    // Reset the pressed keys string if it doesn't match the target keys
+    if (!targetKeys.startsWith(pressedKeys)) {
+      pressedKeys = "";
+    }
   }
 };
 
 window.addEventListener("keydown", handleKeyDown);
+
+// const captureCameraOut = () => {
+//   // cameraOutRef.value.captureCameraOut();
+//   console.log(cameraOutRef.value);
+//   // console.log("cameraOut");
+// };
+onMounted(async () => {
+  // console.log(transaksiStore.waktuMasuk);
+  try {
+    const getPicBodyMasuk = await axios.post(
+      process.env.API_URL + "/transactions/pic",
+      {
+        no_pol: transaksiStore.nomorTiket,
+      }
+    );
+    picBodyMasuk.value = getPicBodyMasuk.data;
+  } catch (error) {
+    console.error(error);
+  }
+});
 </script>
 
 <style scoped>

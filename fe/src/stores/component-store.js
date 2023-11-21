@@ -12,6 +12,10 @@ export const useComponentStore = defineStore("component", {
       in: ls.get("cameraIn"),
       out: ls.get("cameraOut"),
     }),
+    paymenCardKey: ref(0),
+    outGateKey: ref(0),
+    cameraInKey: ref(0),
+    cameraOutKey: ref(0),
   }),
   actions: {
     async getAvailableCameras() {
@@ -27,6 +31,26 @@ export const useComponentStore = defineStore("component", {
         ls.set("cameraOut", id);
         this.cameraId.value.out = id;
       }
+    },
+    setPaymentCardKey() {
+      const key = Date.now();
+      this.paymenCardKey = key;
+      console.log(this.paymenCardKey);
+    },
+    setOutGateKey() {
+      const key = Date.now();
+      this.outGateKey = key;
+      console.log(this.outGateKey);
+    },
+    setCameraInKey() {
+      const key = Date.now();
+      this.cameraInKey = key;
+      console.log(this.cameraInKey);
+    },
+    setCameraOutKey() {
+      const key = Date.now();
+      this.cameraOutKey = key;
+      console.log(this.cameraOutKey);
     },
   },
 });
